@@ -13,26 +13,14 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package me.zhengjie.config;
+package me.zhengjie.modules.email.repository;
 
-import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import me.zhengjie.modules.email.domain.EmailConfig;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
  * @author Zheng Jie
- * 
- * @description
- * @date 2020-05-18
- **/
-@Data
-@Component
-public class RsaProperties {
-
-    public static String privateKey;
-
-    @Value("${rsa.private_key}")
-    public void setPrivateKey(String privateKey) {
-        RsaProperties.privateKey = privateKey;
-    }
+ * @date 2018-12-26
+ */
+public interface EmailRepository extends JpaRepository<EmailConfig,Long> {
 }

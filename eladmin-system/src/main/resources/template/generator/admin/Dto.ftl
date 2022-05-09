@@ -29,7 +29,7 @@ import com.alibaba.fastjson.serializer.ToStringSerializer;
 </#if>
 
 /**
-* @website https://el-admin.vip
+*
 * @description /
 * @author ${author}
 * @date ${date}

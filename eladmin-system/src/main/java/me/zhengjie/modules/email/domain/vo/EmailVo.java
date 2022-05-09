@@ -13,26 +13,32 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package me.zhengjie.config;
+package me.zhengjie.modules.email.domain.vo;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import lombok.NoArgsConstructor;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import java.util.List;
 
 /**
- * @author Zheng Jie
- * 
- * @description
- * @date 2020-05-18
- **/
+ * 发送邮件时，接收参数的类
+ * @author 郑杰
+ * @date 2018/09/28 12:02:14
+ */
 @Data
-@Component
-public class RsaProperties {
+@AllArgsConstructor
+@NoArgsConstructor
+public class EmailVo {
 
-    public static String privateKey;
+    /** 收件人，支持多个收件人 */
+    @NotEmpty
+    private List<String> tos;
 
-    @Value("${rsa.private_key}")
-    public void setPrivateKey(String privateKey) {
-        RsaProperties.privateKey = privateKey;
-    }
+    @NotBlank
+    private String subject;
+
+    @NotBlank
+    private String content;
 }

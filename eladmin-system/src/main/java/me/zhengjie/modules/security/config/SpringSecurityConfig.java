@@ -154,26 +154,26 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
             AnonymousAccess anonymousAccess = handlerMethod.getMethodAnnotation(AnonymousAccess.class);
             if (null != anonymousAccess) {
                 List<RequestMethod> requestMethods = new ArrayList<>(infoEntry.getKey().getMethodsCondition().getMethods());
-                RequestMethodEnum request = RequestMethodEnum.find(requestMethods.size() == 0 ? RequestMethodEnum.ALL.getType() : requestMethods.get(0).name());
-                switch (Objects.requireNonNull(request)) {
-                    case GET:
-                        get.addAll(infoEntry.getKey().getPatternsCondition().getPatterns());
-                        break;
-                    case POST:
-                        post.addAll(infoEntry.getKey().getPatternsCondition().getPatterns());
-                        break;
-                    case PUT:
-                        put.addAll(infoEntry.getKey().getPatternsCondition().getPatterns());
-                        break;
-                    case PATCH:
-                        patch.addAll(infoEntry.getKey().getPatternsCondition().getPatterns());
-                        break;
-                    case DELETE:
-                        delete.addAll(infoEntry.getKey().getPatternsCondition().getPatterns());
-                        break;
-                    default:
-                        all.addAll(infoEntry.getKey().getPatternsCondition().getPatterns());
-                        break;
+                if(requestMethods.size() == 0) {
+                    all.addAll(infoEntry.getKey().getPatternsCondition().getPatterns());
+                } else {
+                    switch (requestMethods.get(0)) {
+                        case GET:
+                            get.addAll(infoEntry.getKey().getPatternsCondition().getPatterns());
+                            break;
+                        case POST:
+                            post.addAll(infoEntry.getKey().getPatternsCondition().getPatterns());
+                            break;
+                        case PUT:
+                            put.addAll(infoEntry.getKey().getPatternsCondition().getPatterns());
+                            break;
+                        case PATCH:
+                            patch.addAll(infoEntry.getKey().getPatternsCondition().getPatterns());
+                            break;
+                        case DELETE:
+                            delete.addAll(infoEntry.getKey().getPatternsCondition().getPatterns());
+                            break;
+                    }
                 }
             }
         }

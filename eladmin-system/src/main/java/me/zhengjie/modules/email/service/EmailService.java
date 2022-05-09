@@ -13,30 +13,38 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package me.zhengjie.modules.system.service;
+package me.zhengjie.modules.email.service;
 
 
+import me.zhengjie.modules.email.domain.EmailConfig;
 import me.zhengjie.modules.email.domain.vo.EmailVo;
 
 /**
  * @author Zheng Jie
  * @date 2018-12-26
  */
-public interface VerifyService {
+public interface EmailService {
 
     /**
-     * 发送验证码
-     * @param email /
-     * @param key /
+     * 更新邮件配置
+     * @param emailConfig 邮箱配置
+     * @param old /
      * @return /
+     * @throws Exception /
      */
-    EmailVo sendEmail(String email, String key);
-
+    EmailConfig config(EmailConfig emailConfig, EmailConfig old) throws Exception;
 
     /**
-     * 验证
-     * @param code /
-     * @param key /
+     * 查询配置
+     * @return EmailConfig 邮件配置
      */
-    void validated(String key, String code);
+    EmailConfig find();
+
+    /**
+     * 发送邮件
+     * @param emailVo 邮件发送的内容
+     * @param emailConfig 邮件配置
+     * @throws Exception /
+     */
+    void send(EmailVo emailVo, EmailConfig emailConfig);
 }
