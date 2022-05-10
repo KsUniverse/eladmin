@@ -19,7 +19,6 @@ import lombok.extern.slf4j.Slf4j;
 import me.zhengjie.exception.BadRequestException;
 import me.zhengjie.exception.EntityExistException;
 import me.zhengjie.exception.EntityNotFoundException;
-import me.zhengjie.utils.ThrowableUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -43,7 +42,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Throwable.class)
     public ResponseEntity<ApiError> handleException(Throwable e){
         // 打印堆栈信息
-        log.error(ThrowableUtil.getStackTrace(e));
+        log.error("系统异常", e);
         return buildResponseEntity(ApiError.error(e.getMessage()));
     }
 
@@ -64,7 +63,7 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(value = BadRequestException.class)
 	public ResponseEntity<ApiError> badRequestException(BadRequestException e) {
         // 打印堆栈信息
-        log.error(ThrowableUtil.getStackTrace(e));
+        log.error("请求参数错误", e);
         return buildResponseEntity(ApiError.error(e.getStatus(),e.getMessage()));
 	}
 
@@ -74,7 +73,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = EntityExistException.class)
     public ResponseEntity<ApiError> entityExistException(EntityExistException e) {
         // 打印堆栈信息
-        log.error(ThrowableUtil.getStackTrace(e));
+        log.error("数据已存在", e);
         return buildResponseEntity(ApiError.error(e.getMessage()));
     }
 
@@ -84,7 +83,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = EntityNotFoundException.class)
     public ResponseEntity<ApiError> entityNotFoundException(EntityNotFoundException e) {
         // 打印堆栈信息
-        log.error(ThrowableUtil.getStackTrace(e));
+        log.error("数据不存在", e);
         return buildResponseEntity(ApiError.error(NOT_FOUND.value(),e.getMessage()));
     }
 
@@ -94,7 +93,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> handleMethodArgumentNotValidException(MethodArgumentNotValidException e){
         // 打印堆栈信息
-        log.error(ThrowableUtil.getStackTrace(e));
+        log.error("参数验证异常", e);
         String[] str = Objects.requireNonNull(e.getBindingResult().getAllErrors().get(0).getCodes())[1].split("\\.");
         String message = e.getBindingResult().getAllErrors().get(0).getDefaultMessage();
         String msg = "不能为空";

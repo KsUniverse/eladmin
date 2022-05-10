@@ -68,7 +68,7 @@ public class ${className}ServiceImpl implements ${className}Service {
     @Override
     public Map<String,Object> queryAll(${className}QueryCriteria criteria, Pageable pageable){
         Page<${className}> page = ${changeClassName}Repository.findAll((root, criteriaQuery, criteriaBuilder) -> QueryHelp.getPredicate(root,criteria,criteriaBuilder),pageable);
-        return PageUtil.toPage(page.map(x -> Convert.toList(${className}Dto.class, x)));
+        return PageUtil.toPage(page.map(x -> Convert.convert(${className}Dto.class, x)));
     }
 
     @Override
