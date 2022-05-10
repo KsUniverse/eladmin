@@ -15,6 +15,7 @@
  */
 package me.zhengjie.service.impl;
 
+import cn.hutool.core.convert.Convert;
 import cn.hutool.core.lang.Dict;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONUtil;
@@ -22,9 +23,9 @@ import lombok.RequiredArgsConstructor;
 import me.zhengjie.domain.Log;
 import me.zhengjie.repository.LogRepository;
 import me.zhengjie.service.LogService;
+import me.zhengjie.service.dto.LogErrorDTO;
 import me.zhengjie.service.dto.LogQueryCriteria;
-import me.zhengjie.service.mapstruct.LogErrorMapper;
-import me.zhengjie.service.mapstruct.LogSmallMapper;
+import me.zhengjie.service.dto.LogSmallDTO;
 import me.zhengjie.utils.*;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
@@ -49,15 +50,13 @@ import java.util.*;
 @RequiredArgsConstructor
 public class LogServiceImpl implements LogService {
     private final LogRepository logRepository;
-    private final LogErrorMapper logErrorMapper;
-    private final LogSmallMapper logSmallMapper;
 
     @Override
     public Object queryAll(LogQueryCriteria criteria, Pageable pageable) {
         Page<Log> page = logRepository.findAll(((root, criteriaQuery, cb) -> QueryHelp.getPredicate(root, criteria, cb)), pageable);
         String status = "ERROR";
         if (status.equals(criteria.getLogType())) {
-            return PageUtil.toPage(page.map(logErrorMapper::toDto));
+            return PageUtil.toPage(page.map(x -> Convert.convert(LogErrorDTO.class, x)));
         }
         return page;
     }
@@ -70,7 +69,7 @@ public class LogServiceImpl implements LogService {
     @Override
     public Object queryAllByUser(LogQueryCriteria criteria, Pageable pageable) {
         Page<Log> page = logRepository.findAll(((root, criteriaQuery, cb) -> QueryHelp.getPredicate(root, criteria, cb)), pageable);
-        return PageUtil.toPage(page.map(logSmallMapper::toDto));
+        return PageUtil.toPage(page.map(x -> Convert.convert(LogSmallDTO.class, x)));
     }
 
     @Override

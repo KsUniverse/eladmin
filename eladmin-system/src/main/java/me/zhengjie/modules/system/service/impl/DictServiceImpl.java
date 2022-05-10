@@ -16,6 +16,8 @@
 package me.zhengjie.modules.system.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.convert.Convert;
+import cn.hutool.core.lang.TypeReference;
 import lombok.RequiredArgsConstructor;
 import me.zhengjie.modules.system.domain.Dict;
 import me.zhengjie.modules.system.service.dto.DictDetailDto;
@@ -24,7 +26,6 @@ import me.zhengjie.utils.*;
 import me.zhengjie.modules.system.repository.DictRepository;
 import me.zhengjie.modules.system.service.DictService;
 import me.zhengjie.modules.system.service.dto.DictDto;
-import me.zhengjie.modules.system.service.mapstruct.DictMapper;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -44,19 +45,18 @@ import java.util.*;
 public class DictServiceImpl implements DictService {
 
     private final DictRepository dictRepository;
-    private final DictMapper dictMapper;
     private final RedisUtils redisUtils;
 
     @Override
     public Map<String, Object> queryAll(DictQueryCriteria dict, Pageable pageable){
         Page<Dict> page = dictRepository.findAll((root, query, cb) -> QueryHelp.getPredicate(root, dict, cb), pageable);
-        return PageUtil.toPage(page.map(dictMapper::toDto));
+        return PageUtil.toPage(page.map(x -> Convert.convert(DictDetailDto.class, x)));
     }
 
     @Override
     public List<DictDto> queryAll(DictQueryCriteria dict) {
         List<Dict> list = dictRepository.findAll((root, query, cb) -> QueryHelp.getPredicate(root, dict, cb));
-        return dictMapper.toDto(list);
+        return Convert.toList(DictDto.class, list);
     }
 
     @Override

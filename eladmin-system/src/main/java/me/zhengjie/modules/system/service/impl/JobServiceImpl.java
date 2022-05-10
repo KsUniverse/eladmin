@@ -15,6 +15,8 @@
  */
 package me.zhengjie.modules.system.service.impl;
 
+import cn.hutool.core.convert.Convert;
+import cn.hutool.core.lang.TypeReference;
 import lombok.RequiredArgsConstructor;
 import me.zhengjie.exception.BadRequestException;
 import me.zhengjie.exception.EntityExistException;
@@ -25,7 +27,6 @@ import me.zhengjie.utils.*;
 import me.zhengjie.modules.system.repository.JobRepository;
 import me.zhengjie.modules.system.service.JobService;
 import me.zhengjie.modules.system.service.dto.JobDto;
-import me.zhengjie.modules.system.service.mapstruct.JobMapper;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -47,20 +48,19 @@ import java.util.*;
 public class JobServiceImpl implements JobService {
 
     private final JobRepository jobRepository;
-    private final JobMapper jobMapper;
     private final RedisUtils redisUtils;
     private final UserRepository userRepository;
 
     @Override
     public Map<String,Object> queryAll(JobQueryCriteria criteria, Pageable pageable) {
         Page<Job> page = jobRepository.findAll((root, criteriaQuery, criteriaBuilder) -> QueryHelp.getPredicate(root,criteria,criteriaBuilder),pageable);
-        return PageUtil.toPage(page.map(jobMapper::toDto).getContent(),page.getTotalElements());
+        return PageUtil.toPage(page.map(x -> Convert.convert(JobDto.class, x)).getContent(),page.getTotalElements());
     }
 
     @Override
     public List<JobDto> queryAll(JobQueryCriteria criteria) {
         List<Job> list = jobRepository.findAll((root, criteriaQuery, criteriaBuilder) -> QueryHelp.getPredicate(root,criteria,criteriaBuilder));
-        return jobMapper.toDto(list);
+        return Convert.toList(JobDto.class, list);
     }
 
     @Override
@@ -68,7 +68,7 @@ public class JobServiceImpl implements JobService {
     public JobDto findById(Long id) {
         Job job = jobRepository.findById(id).orElseGet(Job::new);
         ValidationUtil.isNull(job.getId(),"Job","id",id);
-        return jobMapper.toDto(job);
+        return Convert.convert(JobDto.class, job);
     }
 
     @Override

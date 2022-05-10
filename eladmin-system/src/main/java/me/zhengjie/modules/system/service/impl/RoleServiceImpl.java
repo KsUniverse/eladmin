@@ -16,6 +16,8 @@
 package me.zhengjie.modules.system.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.convert.Convert;
+import cn.hutool.core.lang.TypeReference;
 import lombok.RequiredArgsConstructor;
 import me.zhengjie.exception.BadRequestException;
 import me.zhengjie.modules.security.service.UserCacheClean;
@@ -30,8 +32,6 @@ import me.zhengjie.modules.system.service.dto.RoleDto;
 import me.zhengjie.modules.system.service.dto.RoleQueryCriteria;
 import me.zhengjie.modules.system.service.dto.RoleSmallDto;
 import me.zhengjie.modules.system.service.dto.UserDto;
-import me.zhengjie.modules.system.service.mapstruct.RoleMapper;
-import me.zhengjie.modules.system.service.mapstruct.RoleSmallMapper;
 import me.zhengjie.utils.*;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
@@ -58,8 +58,6 @@ import java.util.stream.Collectors;
 public class RoleServiceImpl implements RoleService {
 
     private final RoleRepository roleRepository;
-    private final RoleMapper roleMapper;
-    private final RoleSmallMapper roleSmallMapper;
     private final RedisUtils redisUtils;
     private final UserRepository userRepository;
     private final UserCacheClean userCacheClean;
@@ -67,18 +65,19 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public List<RoleDto> queryAll() {
         Sort sort = Sort.by(Sort.Direction.ASC, "level");
-        return roleMapper.toDto(roleRepository.findAll(sort));
+        return Convert.toList(RoleDto.class, roleRepository.findAll(sort));
     }
 
     @Override
     public List<RoleDto> queryAll(RoleQueryCriteria criteria) {
-        return roleMapper.toDto(roleRepository.findAll((root, criteriaQuery, criteriaBuilder) -> QueryHelp.getPredicate(root, criteria, criteriaBuilder)));
+        return  Convert.toList(RoleDto.class,
+                roleRepository.findAll((root, criteriaQuery, criteriaBuilder) -> QueryHelp.getPredicate(root, criteria, criteriaBuilder)));
     }
 
     @Override
     public Object queryAll(RoleQueryCriteria criteria, Pageable pageable) {
         Page<Role> page = roleRepository.findAll((root, criteriaQuery, criteriaBuilder) -> QueryHelp.getPredicate(root, criteria, criteriaBuilder), pageable);
-        return PageUtil.toPage(page.map(roleMapper::toDto));
+        return PageUtil.toPage(page.map(x -> Convert.convert(RoleDto.class, x)));
     }
 
     @Override
@@ -87,7 +86,7 @@ public class RoleServiceImpl implements RoleService {
     public RoleDto findById(long id) {
         Role role = roleRepository.findById(id).orElseGet(Role::new);
         ValidationUtil.isNull(role.getId(), "Role", "id", id);
-        return roleMapper.toDto(role);
+        return Convert.convert(RoleDto.class, role);
     }
 
     @Override
@@ -122,7 +121,7 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public void updateMenu(Role resources, RoleDto roleDTO) {
-        Role role = roleMapper.toEntity(roleDTO);
+        Role role = Convert.convert(Role.class, roleDTO);
         List<User> users = userRepository.findByRoleId(role.getId());
         // 更新菜单
         role.setMenus(resources.getMenus());
@@ -149,7 +148,7 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public List<RoleSmallDto> findByUsersId(Long id) {
-        return roleSmallMapper.toDto(new ArrayList<>(roleRepository.findByUserId(id)));
+        return Convert.toList(RoleSmallDto.class, new ArrayList<>(roleRepository.findByUserId(id)));
     }
 
     @Override

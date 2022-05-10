@@ -15,6 +15,8 @@
  */
 package me.zhengjie.modules.system.service.impl;
 
+import cn.hutool.core.convert.Convert;
+import cn.hutool.core.lang.TypeReference;
 import lombok.RequiredArgsConstructor;
 import me.zhengjie.modules.system.domain.Dict;
 import me.zhengjie.modules.system.domain.DictDetail;
@@ -24,7 +26,6 @@ import me.zhengjie.utils.*;
 import me.zhengjie.modules.system.repository.DictDetailRepository;
 import me.zhengjie.modules.system.service.DictDetailService;
 import me.zhengjie.modules.system.service.dto.DictDetailDto;
-import me.zhengjie.modules.system.service.mapstruct.DictDetailMapper;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
@@ -45,13 +46,12 @@ public class DictDetailServiceImpl implements DictDetailService {
 
     private final DictRepository dictRepository;
     private final DictDetailRepository dictDetailRepository;
-    private final DictDetailMapper dictDetailMapper;
     private final RedisUtils redisUtils;
 
     @Override
     public Map<String,Object> queryAll(DictDetailQueryCriteria criteria, Pageable pageable) {
         Page<DictDetail> page = dictDetailRepository.findAll((root, criteriaQuery, criteriaBuilder) -> QueryHelp.getPredicate(root,criteria,criteriaBuilder),pageable);
-        return PageUtil.toPage(page.map(dictDetailMapper::toDto));
+        return PageUtil.toPage(page.map(x -> Convert.convert(DictDetailDto.class, x)));
     }
 
     @Override
@@ -76,7 +76,7 @@ public class DictDetailServiceImpl implements DictDetailService {
     @Override
     @Cacheable(key = "'name:' + #p0")
     public List<DictDetailDto> getDictByName(String name) {
-        return dictDetailMapper.toDto(dictDetailRepository.findByDictName(name));
+        return Convert.toList(DictDetailDto.class, dictDetailRepository.findByDictName(name));
     }
 
     @Override

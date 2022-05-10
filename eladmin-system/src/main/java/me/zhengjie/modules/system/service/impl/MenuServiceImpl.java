@@ -16,6 +16,8 @@
 package me.zhengjie.modules.system.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.convert.Convert;
+import cn.hutool.core.lang.TypeReference;
 import cn.hutool.core.util.ObjectUtil;
 import lombok.RequiredArgsConstructor;
 import me.zhengjie.modules.system.domain.Menu;
@@ -32,7 +34,6 @@ import me.zhengjie.modules.system.service.RoleService;
 import me.zhengjie.modules.system.service.dto.MenuDto;
 import me.zhengjie.modules.system.service.dto.MenuQueryCriteria;
 import me.zhengjie.modules.system.service.dto.RoleSmallDto;
-import me.zhengjie.modules.system.service.mapstruct.MenuMapper;
 import me.zhengjie.utils.*;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
@@ -55,7 +56,6 @@ public class MenuServiceImpl implements MenuService {
 
     private final MenuRepository menuRepository;
     private final UserRepository userRepository;
-    private final MenuMapper menuMapper;
     private final RoleService roleService;
     private final RedisUtils redisUtils;
 
@@ -78,7 +78,9 @@ public class MenuServiceImpl implements MenuService {
                 }
             }
         }
-        return menuMapper.toDto(menuRepository.findAll((root, criteriaQuery, criteriaBuilder) -> QueryHelp.getPredicate(root,criteria,criteriaBuilder),sort));
+        return Convert.toList(MenuDto.class, menuRepository.findAll(
+                (root, criteriaQuery, criteriaBuilder) -> QueryHelp.getPredicate(root, criteria, criteriaBuilder),
+                sort));
     }
 
     @Override
@@ -86,7 +88,7 @@ public class MenuServiceImpl implements MenuService {
     public MenuDto findById(long id) {
         Menu menu = menuRepository.findById(id).orElseGet(Menu::new);
         ValidationUtil.isNull(menu.getId(),"Menu","id",id);
-        return menuMapper.toDto(menu);
+        return Convert.convert(MenuDto.class, menu);
     }
 
     /**
@@ -99,7 +101,7 @@ public class MenuServiceImpl implements MenuService {
         List<RoleSmallDto> roles = roleService.findByUsersId(currentUserId);
         Set<Long> roleIds = roles.stream().map(RoleSmallDto::getId).collect(Collectors.toSet());
         LinkedHashSet<Menu> menus = menuRepository.findByRoleIdsAndTypeNot(roleIds, 2);
-        return menus.stream().map(menuMapper::toDto).collect(Collectors.toList());
+        return menus.stream().map(x -> Convert.convert(MenuDto.class, x)).collect(Collectors.toList());
     }
 
     @Override
@@ -216,14 +218,14 @@ public class MenuServiceImpl implements MenuService {
         } else {
             menus = menuRepository.findByPidIsNull();
         }
-        return menuMapper.toDto(menus);
+        return Convert.toList(MenuDto.class, menus);
     }
 
     @Override
     public List<MenuDto> getSuperior(MenuDto menuDto, List<Menu> menus) {
         if(menuDto.getPid() == null){
             menus.addAll(menuRepository.findByPidIsNull());
-            return menuMapper.toDto(menus);
+            return Convert.toList(MenuDto.class, menus);
         }
         menus.addAll(menuRepository.findByPid(menuDto.getPid()));
         return getSuperior(findById(menuDto.getPid()), menus);

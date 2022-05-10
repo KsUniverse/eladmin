@@ -16,6 +16,8 @@
 package me.zhengjie.modules.system.rest;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.convert.Convert;
+import cn.hutool.core.lang.TypeReference;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +27,6 @@ import me.zhengjie.exception.BadRequestException;
 import me.zhengjie.modules.system.service.MenuService;
 import me.zhengjie.modules.system.service.dto.MenuDto;
 import me.zhengjie.modules.system.service.dto.MenuQueryCriteria;
-import me.zhengjie.modules.system.service.mapstruct.MenuMapper;
 import me.zhengjie.utils.PageUtil;
 import me.zhengjie.utils.SecurityUtils;
 import org.springframework.http.HttpStatus;
@@ -49,7 +50,6 @@ import java.util.stream.Collectors;
 public class MenuController {
 
     private final MenuService menuService;
-    private final MenuMapper menuMapper;
     private static final String ENTITY_NAME = "menu";
 
     @ApiOperation("导出菜单数据")
@@ -81,7 +81,7 @@ public class MenuController {
         Set<Menu> menuSet = new HashSet<>();
         List<MenuDto> menuList = menuService.getMenus(id);
         menuSet.add(menuService.findOne(id));
-        menuSet = menuService.getChildMenus(menuMapper.toEntity(menuList), menuSet);
+        menuSet = menuService.getChildMenus(Convert.toList(Menu.class, menuList), menuSet);
         Set<Long> ids = menuSet.stream().map(Menu::getId).collect(Collectors.toSet());
         return new ResponseEntity<>(ids,HttpStatus.OK);
     }
@@ -139,7 +139,7 @@ public class MenuController {
         for (Long id : ids) {
             List<MenuDto> menuList = menuService.getMenus(id);
             menuSet.add(menuService.findOne(id));
-            menuSet = menuService.getChildMenus(menuMapper.toEntity(menuList), menuSet);
+            menuSet = menuService.getChildMenus(Convert.toList(Menu.class, menuList), menuSet);
         }
         menuService.delete(menuSet);
         return new ResponseEntity<>(HttpStatus.OK);

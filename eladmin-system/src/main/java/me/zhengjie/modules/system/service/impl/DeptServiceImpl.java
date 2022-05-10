@@ -16,6 +16,8 @@
 package me.zhengjie.modules.system.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.convert.Convert;
+import cn.hutool.core.lang.TypeReference;
 import cn.hutool.core.util.ObjectUtil;
 import lombok.RequiredArgsConstructor;
 import me.zhengjie.exception.BadRequestException;
@@ -28,7 +30,6 @@ import me.zhengjie.modules.system.service.dto.DeptQueryCriteria;
 import me.zhengjie.utils.*;
 import me.zhengjie.modules.system.repository.DeptRepository;
 import me.zhengjie.modules.system.service.DeptService;
-import me.zhengjie.modules.system.service.mapstruct.DeptMapper;
 import me.zhengjie.utils.enums.DataScopeEnum;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
@@ -51,7 +52,6 @@ import java.util.stream.Collectors;
 public class DeptServiceImpl implements DeptService {
 
     private final DeptRepository deptRepository;
-    private final DeptMapper deptMapper;
     private final UserRepository userRepository;
     private final RedisUtils redisUtils;
     private final RoleRepository roleRepository;
@@ -79,7 +79,9 @@ public class DeptServiceImpl implements DeptService {
                 }
             }
         }
-        List<DeptDto> list = deptMapper.toDto(deptRepository.findAll((root, criteriaQuery, criteriaBuilder) -> QueryHelp.getPredicate(root,criteria,criteriaBuilder),sort));
+        List<DeptDto> list = Convert.toList(DeptDto.class, deptRepository.findAll(
+                (root, criteriaQuery, criteriaBuilder) -> QueryHelp.getPredicate(root, criteria, criteriaBuilder),
+                sort));
         // 如果为空，就代表为自定义权限或者本级权限，就需要去重，不理解可以注释掉，看查询结果
         if(StringUtils.isBlank(dataScopeType)){
             return deduplication(list);
@@ -92,7 +94,7 @@ public class DeptServiceImpl implements DeptService {
     public DeptDto findById(Long id) {
         Dept dept = deptRepository.findById(id).orElseGet(Dept::new);
         ValidationUtil.isNull(dept.getId(),"Dept","id",id);
-        return deptMapper.toDto(dept);
+        return Convert.convert(DeptDto.class, dept);
     }
 
     @Override
@@ -164,7 +166,7 @@ public class DeptServiceImpl implements DeptService {
     @Override
     public Set<DeptDto> getDeleteDepts(List<Dept> menuList, Set<DeptDto> deptDtos) {
         for (Dept dept : menuList) {
-            deptDtos.add(deptMapper.toDto(dept));
+            deptDtos.add(Convert.convert(DeptDto.class, dept));
             List<Dept> depts = deptRepository.findByPid(dept.getId());
             if(depts!=null && depts.size()!=0){
                 getDeleteDepts(depts, deptDtos);
@@ -193,7 +195,7 @@ public class DeptServiceImpl implements DeptService {
     public List<DeptDto> getSuperior(DeptDto deptDto, List<Dept> depts) {
         if(deptDto.getPid() == null){
             depts.addAll(deptRepository.findByPidIsNull());
-            return deptMapper.toDto(depts);
+            return Convert.toList(DeptDto.class, depts);
         }
         depts.addAll(deptRepository.findByPid(deptDto.getPid()));
         return getSuperior(findById(deptDto.getPid()), depts);
