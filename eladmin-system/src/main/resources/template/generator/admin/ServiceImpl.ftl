@@ -25,6 +25,7 @@ import me.zhengjie.exception.EntityExistException;
         </#if>
     </#list>
 </#if>
+import cn.hutool.core.convert.Convert;
 import me.zhengjie.utils.ValidationUtil;
 import me.zhengjie.utils.FileUtil;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +33,6 @@ import ${package}.repository.${className}Repository;
 import ${package}.service.${className}Service;
 import ${package}.service.dto.${className}Dto;
 import ${package}.service.dto.${className}QueryCriteria;
-import ${package}.service.mapstruct.${className}Mapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 <#if !auto && pkColumnType = 'Long'>
@@ -64,17 +64,16 @@ import java.util.LinkedHashMap;
 public class ${className}ServiceImpl implements ${className}Service {
 
     private final ${className}Repository ${changeClassName}Repository;
-    private final ${className}Mapper ${changeClassName}Mapper;
 
     @Override
     public Map<String,Object> queryAll(${className}QueryCriteria criteria, Pageable pageable){
         Page<${className}> page = ${changeClassName}Repository.findAll((root, criteriaQuery, criteriaBuilder) -> QueryHelp.getPredicate(root,criteria,criteriaBuilder),pageable);
-        return PageUtil.toPage(page.map(${changeClassName}Mapper::toDto));
+        return PageUtil.toPage(page.map(x -> Convert.toList(${className}Dto.class, x)));
     }
 
     @Override
     public List<${className}Dto> queryAll(${className}QueryCriteria criteria){
-        return ${changeClassName}Mapper.toDto(${changeClassName}Repository.findAll((root, criteriaQuery, criteriaBuilder) -> QueryHelp.getPredicate(root,criteria,criteriaBuilder)));
+        return Convert.toList(${className}Dto.class, ${changeClassName}Repository.findAll((root, criteriaQuery, criteriaBuilder) -> QueryHelp.getPredicate(root,criteria,criteriaBuilder)));
     }
 
     @Override
@@ -82,7 +81,7 @@ public class ${className}ServiceImpl implements ${className}Service {
     public ${className}Dto findById(${pkColumnType} ${pkChangeColName}) {
         ${className} ${changeClassName} = ${changeClassName}Repository.findById(${pkChangeColName}).orElseGet(${className}::new);
         ValidationUtil.isNull(${changeClassName}.get${pkCapitalColName}(),"${className}","${pkChangeColName}",${pkChangeColName});
-        return ${changeClassName}Mapper.toDto(${changeClassName});
+        return Convert.convert(${className}Dto.class, ${changeClassName});
     }
 
     @Override
@@ -104,7 +103,7 @@ public class ${className}ServiceImpl implements ${className}Service {
     </#if>
     </#list>
 </#if>
-        return ${changeClassName}Mapper.toDto(${changeClassName}Repository.save(resources));
+        return Convert.convert(${className}Dto.class, ${changeClassName}Repository.save(resources));
     }
 
     @Override
